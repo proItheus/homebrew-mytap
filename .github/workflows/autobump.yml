@@ -1,0 +1,71 @@
+name: Bump casks and formulae on schedule or request
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Custom list of casks/formulae to livecheck and bump if outdated
+        required: false
+  schedule:
+    # Every day at 06:23 UTC
+    - cron: "23 6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  autobump:
+    runs-on: macos-26
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      HOMEBREW_DEVELOPER: 1
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          core: false
+          cask: false
+
+      - name: Configure Git user
+        uses: Homebrew/actions/git-user-config@main
+        with:
+          username: ${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'github-actions[bot]' }}
+
+      - name: Bump casks
+        id: bump-casks
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN || secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        run: |
+          BREW_BUMP=(brew bump --no-fork --open-pr --casks)
+          if [[ -n "${PACKAGES-}" ]]; then
+            xargs "${BREW_BUMP[@]}" <<<"${PACKAGES}"
+          else
+            "${BREW_BUMP[@]}" --auto --tap="$GITHUB_REPOSITORY"
+          fi
+
+      - name: Bump formulae
+        id: bump-formulae
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN || secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        run: |
+          BREW_BUMP=(brew bump --no-fork --open-pr --formulae)
+          if [[ -n "${PACKAGES-}" ]]; then
+            xargs "${BREW_BUMP[@]}" <<<"${PACKAGES}"
+          else
+            "${BREW_BUMP[@]}" --auto --tap="$GITHUB_REPOSITORY"
+          fi
+
+      - name: Enable auto-merge on created PRs
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ACTOR="${{ (github.event_name == 'workflow_dispatch' && github.actor) || 'github-actions[bot]' }}"
+          for pr in $(gh pr list --author "$ACTOR" --state open --json number --jq '.[].number'); do
+            gh pr edit "$pr" --add-label autobump
+            gh pr merge "$pr" --auto --merge
+          done
