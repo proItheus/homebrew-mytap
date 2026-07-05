@@ -6,6 +6,32 @@ require "fileutils"
 module Homebrew
   module Cmd
     class StripQuarantine < AbstractCommand
+      BOILERPLATE = <<~'RUBY'
+        postflight do
+          @cask.artifacts.each do |artifact|
+            next unless artifact.is_a?(Cask::Artifact::App)
+
+            system_command "/usr/bin/xattr",
+                           args: ["-dr", "com.apple.quarantine", artifact.target.to_s],
+                           sudo: false
+          rescue
+            nil
+          end
+        end
+
+        caveats do
+          source = @cask.tap&.path&.join("Casks", "\#{token}.rb")
+          <<~EOS
+            This cask strips the macOS quarantine attribute from the
+            installed app, bypassing Gatekeeper. This poses a security
+            risk — it should only be used if you trust the maintainer
+            of the proitheus/mytap tap or have personally reviewed the
+            cask source at:
+              \#{source || "the tap's Casks/\#{token}.rb"}
+          EOS
+        end
+      RUBY
+
       cmd_args do
         description <<~EOS
           Ensure all casks in the proitheus/mytap tap have quarantine-stripping
@@ -26,18 +52,14 @@ module Homebrew
           filepath = File.join(casks_dir, "#{target}.rb")
           odie "Cask not found: #{filepath}" unless File.exist?(filepath)
 
-          if process_cask(filepath, target)
-            nil # message already printed in process_cask
-          else
-            puts "==> #{target} already has quarantine handling"
-          end
+          apply_to(filepath, target, quiet: false)
         else
           updated = 0
           Dir.glob(File.join(casks_dir, "*.rb")).each do |filepath|
             next if File.basename(filepath).start_with?("_")
 
             token = File.basename(filepath, ".rb")
-            updated += 1 if process_cask(filepath, token)
+            updated += apply_to(filepath, token, quiet: true)
           end
 
           if updated.zero?
@@ -50,45 +72,23 @@ module Homebrew
 
       private
 
-      BOILERPLATE = <<~'RUBY'
-        postflight do
-          @cask.artifacts.each do |artifact|
-            next unless artifact.is_a?(Cask::Artifact::App)
-
-            system_command "/usr/bin/xattr",
-                           args: ["-dr", "com.apple.quarantine", artifact.target.to_s],
-                           sudo: false
-          rescue
-            nil
-          end
-        end
-
-        caveats do
-          source = @cask.tap&.path&/"Casks"/"#{token}.rb"
-          <<~EOS
-            This cask strips the macOS quarantine attribute from the
-            installed app, bypassing Gatekeeper. This poses a security
-            risk — it should only be used if you trust the maintainer
-            of the proitheus/mytap tap or have personally reviewed the
-            cask source at:
-              #{source || "the tap's Casks/#{token}.rb"}
-          EOS
-        end
-      RUBY
-
-      def process_cask(filepath, token)
+      def apply_to(filepath, token, quiet: true)
         content = File.read(filepath)
-        return false if content.include?("com.apple.quarantine")
+        if content.include?("com.apple.quarantine")
+          puts "==> #{token} already has quarantine handling" unless quiet
+          return 0
+        end
 
         indent = detect_indent(content)
-        boilerplate = BOILERPLATE.sub(/\#\{token\}/, token)
-                                   .gsub(/^/, indent)
-                                   .gsub(/[[:blank:]]+\n/, "\n")
+        boilerplate = BOILERPLATE
+                      .sub("\#{token}", token)
+                      .gsub(/^/, indent)
+                      .gsub(/[[:blank:]]+\n/, "\n")
 
         content.sub!(/\nend\s*\z/, "\n#{boilerplate.chomp}\nend\n")
         File.write(filepath, content)
         puts "==> Injected quarantine-stripping into #{token}"
-        true
+        1
       end
 
       def detect_indent(content)

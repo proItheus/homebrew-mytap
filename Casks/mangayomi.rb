@@ -4,8 +4,10 @@ cask "mangayomi" do
 
   url "https://github.com/kodjodevf/mangayomi/releases/download/v#{version}/Mangayomi-v#{version}-macos.dmg"
   name "Mangayomi"
-  desc "Free and open source application for reading manga, novels, and watching animes available on Android, iOS, macOS, Linux and Windows "
+  desc "Free and open source cross-platform manga, novel, and anime reader"
   homepage "https://github.com/kodjodevf/mangayomi"
+
+  depends_on macos: :big_sur
 
   app "Mangayomi.app"
 
@@ -23,7 +25,7 @@ cask "mangayomi" do
   end
 
   caveats do
-    source = @cask.tap&.path&/"Casks"/"#{token}.rb"
+    source = @cask.tap&.path&.join("Casks", "#{token}.rb")
     <<~EOS
       This cask strips the macOS quarantine attribute from the
       installed app, bypassing Gatekeeper. This poses a security

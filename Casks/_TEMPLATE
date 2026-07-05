@@ -22,7 +22,7 @@ cask "CHANGEME" do
   end
 
   caveats do
-    source = @cask.tap&.path&/"Casks"/"#{token}.rb"
+    source = @cask.tap&.path&.join("Casks", "#{token}.rb")
     <<~EOS
       This cask strips the macOS quarantine attribute from the
       installed app, bypassing Gatekeeper. This poses a security

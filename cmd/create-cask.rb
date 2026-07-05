@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require "English"
+
 module Homebrew
   module Cmd
     class CreateCask < AbstractCommand
@@ -26,15 +28,15 @@ module Homebrew
 
         puts "==> Creating cask..."
         system("brew", "create", "--cask", url)
-        exit($?.exitstatus) unless $?.success?
+        exit($CHILD_STATUS.exitstatus) unless $CHILD_STATUS.success?
 
         new_files = Dir.glob(File.join(casks_dir, "*.rb"))
                        .reject { |f| existing.include?(f) }
 
-        if new_files.any?
-          token = File.basename(new_files.first, ".rb")
-          system("brew", "strip-quarantine", token)
-        end
+        return if new_files.none?
+
+        token = File.basename(new_files.first, ".rb")
+        system("brew", "strip-quarantine", token)
       end
     end
   end
