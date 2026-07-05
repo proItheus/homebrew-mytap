@@ -27,7 +27,7 @@ module Homebrew
         odie "URL required" unless url
 
         puts "==> Creating cask..."
-        system("brew", "create", "--cask", url)
+        system("brew", "create", "--cask", url, "--tap", "proitheus/mytap")
         exit($CHILD_STATUS.exitstatus) unless $CHILD_STATUS.success?
 
         new_files = Dir.glob(File.join(casks_dir, "*.rb"))

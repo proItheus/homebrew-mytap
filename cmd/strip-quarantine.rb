@@ -21,14 +21,14 @@ module Homebrew
         end
 
         caveats do
-          source = @cask.tap&.path&.join("Casks", "\#{token}.rb")
+          source = @cask.tap&.path&.join("Casks", "#{token}.rb")
           <<~EOS
             This cask strips the macOS quarantine attribute from the
             installed app, bypassing Gatekeeper. This poses a security
             risk — it should only be used if you trust the maintainer
             of the proitheus/mytap tap or have personally reviewed the
             cask source at:
-              \#{source || "the tap's Casks/\#{token}.rb"}
+              #{source || "the tap's Casks/#{token}.rb"}
           EOS
         end
       RUBY
