@@ -13,10 +13,9 @@ cask "piliplus" do
   livecheck do
     url "https://api.github.com/repos/bggRGjQaUbCoE/PiliPlus/releases/latest"
     strategy :json do |json|
-      mac_asset_name = json["assets"]&.find do |a|
-        a["name"]&.match?(/macos.*\.dmg$/)
-      end&.[]("name")
-      mac_asset_name&.match(/_macos_(.+)\.dmg$/)&.[](1)
+      json["assets"].filter_map do |a|
+        a["name"].match(/_macos_(.+)\.dmg$/)&.[](1)
+      end.first
     end
   end
 
