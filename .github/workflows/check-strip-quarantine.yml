@@ -1,0 +1,24 @@
+name: Check strip-quarantine
+
+on:
+  pull_request:
+    paths:
+      - "Casks/**.rb"
+
+jobs:
+  check-strip-quarantine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check all casks have quarantine postflight
+        run: |
+          failed=0
+          for f in Casks/*.rb; do
+            [[ "$(basename "$f")" == _* ]] && continue
+            if ! grep -qF "com.apple.quarantine" "$f"; then
+              echo "::error file=$f::Missing quarantine-stripping postflight. Run 'brew strip-quarantine'."
+              failed=1
+            fi
+          done
+          exit $failed
