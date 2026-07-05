@@ -36,8 +36,13 @@ cask "piliplus" do
     end
   end
 
-  # Documentation: https://docs.brew.sh/Cask-Cookbook#stanza-zap
-  zap trash: ""
+  zap trash: [
+    "~/Library/Application Scripts/com.example.piliplus",
+    "~/Library/Application Support/com.example.piliplus",
+    "~/Library/Caches/com.example.piliplus",
+    "~/Library/Containers/com.example.piliplus",
+    "~/Library/WebKit/com.example.piliplus",
+  ]
 
   caveats do
     source = @cask.tap&.path&.join("Casks", "piliplus.rb")

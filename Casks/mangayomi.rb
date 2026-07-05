@@ -25,6 +25,11 @@ cask "mangayomi" do
     end
   end
 
+  zap trash: [
+    "~/Documents/Mangayomi",
+    "~/Library/Application Support/com.kodjodevf.mangayomi",
+  ]
+
   caveats do
     source = @cask.tap&.path&.join("Casks", "#{token}.rb")
     <<~EOS

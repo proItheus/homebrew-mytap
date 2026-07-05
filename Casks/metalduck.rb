@@ -24,6 +24,8 @@ cask "metalduck" do
     end
   end
 
+  zap trash: "~/Library/Application Support/CrashReporter/MetalDuck_*.plist"
+
   caveats do
     source = @cask.tap&.path&.join("Casks", "metalduck.rb")
     <<~EOS
