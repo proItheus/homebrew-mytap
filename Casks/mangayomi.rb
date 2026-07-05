@@ -14,10 +14,11 @@ cask "mangayomi" do
   # zap trash: ""
   postflight do
     @cask.artifacts.each do |artifact|
-      next unless artifact.is_a?(Cask::Artifact::App)
+      target = artifact.respond_to?(:target) ? artifact.target : nil
+      next unless target&.to_s&.end_with?(".app")
 
       system_command "/usr/bin/xattr",
-                     args: ["-dr", "com.apple.quarantine", artifact.target.to_s],
+                     args: ["-dr", "com.apple.quarantine", target.to_s],
                      sudo: false
     rescue
       nil
