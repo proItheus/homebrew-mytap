@@ -1,9 +1,6 @@
-# Documentation: https://docs.brew.sh/Cask-Cookbook
-#                https://docs.brew.sh/Adding-Software-to-Homebrew#cask-stanzas
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
 cask "piliplus" do
-  version "2.0.9+5051"
-  sha256 "be902214356780d364b24023cbc68f3af113bf7cacc79e19ef63abc30f894e8a"
+  version "2.1.0+5109"
+  sha256 "a5b8c44f1b601ebab54558a72b042dd23b47d0af5994270b11d96d1373f01b79"
 
   url "https://github.com/bggRGjQaUbCoE/PiliPlus/releases/latest/download/PiliPlus_macos_#{version}.dmg"
   name "PiliPlus"
