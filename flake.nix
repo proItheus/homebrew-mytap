@@ -4,6 +4,8 @@
     systems.url = "github:nix-systems/default";
     devenv.url = "github:cachix/devenv";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
+    git-hooks.url = "github:cachix/git-hooks.nix";
+    git-hooks.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   nixConfig = {
@@ -11,32 +13,42 @@
     extra-substituters = "https://devenv.cachix.org";
   };
 
-  outputs = { self, nixpkgs, devenv, systems, ... } @ inputs:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      devenv,
+      systems,
+      ...
+    }@inputs:
     let
       forEachSystem = nixpkgs.lib.genAttrs (import systems);
     in
     {
-      devShells = forEachSystem
-        (system:
-          let
-            pkgs = nixpkgs.legacyPackages.${system};
-          in
-          {
-            default = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                {
-                  # https://devenv.sh/reference/options/
-                  packages = [ pkgs.hello ];
-
-                  enterShell = ''
-                    hello
-                  '';
-
-                  processes.hello.exec = "hello";
-                }
-              ];
-            };
-          });
+      devShells = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = devenv.lib.mkShell {
+            inherit inputs pkgs;
+            modules = [
+              {
+                git-hooks.hooks = {
+                  nixfmt.enable = true;
+                  shellcheck.enable = true;
+                  brew-lint = {
+                    enable = true;
+                    name = "Lint via `brew style --fix`";
+                    entry = "brew style --fix";
+                    types = [ "ruby" ];
+                  };
+                };
+              }
+            ];
+          };
+        }
+      );
     };
 }
