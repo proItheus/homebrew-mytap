@@ -1,0 +1,4 @@
+# Configuration variables in array of strings defined in your repository or organization.
+config-variables:
+  - APP_PRIVATE_KEY
+  - APP_CLIENT_ID
