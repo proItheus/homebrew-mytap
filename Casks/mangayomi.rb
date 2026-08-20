@@ -7,7 +7,7 @@ cask "mangayomi" do
   desc "Free and open source cross-platform manga, novel, and anime reader"
   homepage "https://github.com/kodjodevf/mangayomi"
 
-  depends_on macos: :big_sur
+  depends_on macos: :monterey
 
   app "Mangayomi.app"
 
