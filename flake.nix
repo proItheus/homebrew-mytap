@@ -29,6 +29,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          inherit (pkgs) lib;
         in
         {
           default = devenv.lib.mkShell {
@@ -38,12 +39,23 @@
                 git-hooks.hooks = {
                   nixfmt.enable = true;
                   shellcheck.enable = true;
-                  brew-lint = {
-                    enable = true;
-                    name = "Lint via `brew style --fix`";
-                    entry = "brew style --fix";
-                    types = [ "ruby" ];
-                  };
+                  brew-lint =
+                    let
+                      robocopExceptions = [
+                        "Cask/InstallSteps"
+                      ];
+                      exceptionStr =
+                        if (builtins.length robocopExceptions) > 0 then
+                          "--except-cops ${lib.concatStringsSep " " robocopExceptions}"
+                        else
+                          "";
+                    in
+                    {
+                      enable = true;
+                      name = "Lint via `brew style --fix`";
+                      entry = "brew style --fix ${exceptionStr} ";
+                      types = [ "ruby" ];
+                    };
                 };
               }
             ];

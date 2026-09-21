@@ -11,7 +11,7 @@ cask "karaoke-mugen" do
     url "https://gitlab.com/karaokemugen/code/karaokemugen-app.git"
   end
 
-  depends_on macos: :big_sur
+  depends_on :macos
 
   app "Karaoke Mugen.app"
 
