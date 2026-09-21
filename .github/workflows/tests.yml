@@ -39,7 +39,7 @@ jobs:
 
       - run: brew test-bot --only-setup
 
-      - run: brew style proitheus/mytap --except-cops "Cask/InstallSteps"
+      - run: brew style . --except-cops "Cask/InstallSteps"
       - run: brew test-bot --only-formulae
         if: github.event_name == 'pull_request'
 
